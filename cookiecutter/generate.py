@@ -328,6 +328,17 @@ def generate_files(repo_dir, context=None, output_dir='.',
 
             for f in files:
                 infile = os.path.normpath(os.path.join(root, f))
+                if context['cookiecutter']['_maintain_symlinks'] and os.path.islink(infile):
+                    source = os.readlink(infile)
+                    outfile_tmpl = env.from_string(infile)
+                    outfile_rendered = outfile_tmpl.render(**context)
+                    outfile = os.path.join(project_dir, outfile_rendered)
+                    logger.debug(
+                        'Symlinking {} to {}'
+                        ''.format(source, outfile)
+                    )
+                    os.symlink(source, outfile)
+                    continue
                 if is_copy_only_path(infile, context):
                     outfile_tmpl = env.from_string(infile)
                     outfile_rendered = outfile_tmpl.render(**context)
